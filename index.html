@@ -48,7 +48,7 @@
 
   <div class="highlight">
   <pre><span class="nx">onMoveFunc</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">x</span><span class="p">,</span><span class="nx">y</span><span class="p">){</span>
-    <span class="nx">alert</span><span class="p">(</span><span class="s1">'Object detected!!'</span><span class="p">);</span>
+    <span class="nx">alert</span><span class="p">(</span><span class="s1">'Object detected at x=' + x + ', y=' + y</span><span class="p">);</span>
   <span class="p">};</span>
   <span class="kd">var</span> <span class="nx">videotracker</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">VideoTracker</span><span class="p">({</span><span class="nx">video_target_id</span><span class="o">:</span> <span class="s1">'video_id'</span><span class="p">});</span>
   <span class="nx">videotracker</span><span class="p">.</span><span class="nx">setOnMoveFunc</span><span class="p">(</span><span class="nx">onMoveFunc</span><span class="p">);</span>
