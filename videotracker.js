@@ -76,8 +76,8 @@
         return [r, g, b];
     }
     
-    function rgbToHsv(r, g, b){
-        r = r/255, g = g/255, b = b/255;
+    function rgbToHsv(rgb){
+        r = rgb[0]/255, g = rgb[1] /255, b = rgb[2]/255;
         var max = Math.max(r, g, b), min = Math.min(r, g, b);
         var h, s, v = max;
         
@@ -98,11 +98,10 @@
         return [h, s, v];
     }
     
-    function setColorToTrack(h, s, v) {
-        //console.log(h+","+s+","+v);
-        hcolor = h;
-        scolor = s;
-        vcolor = v;
+    function setColorToTrack(hsv) {
+        hcolor = hsv[0];
+        scolor = hsv[1];
+        vcolor = hsv[2];
     }
     
     function is_object_color(pos){
@@ -111,10 +110,10 @@
         if( (frameBlendedData[pos+0]+frameBlendedData[pos+1]+frameBlendedData[pos+2])/3 < 255 )
             return false;
         for (i=pos-4; i<=pos+4; i+=4){
-            hsv = rgbToHsv(frameData[pos+0],frameData[pos+1],frameData[pos+2]);
-            if(hsv[0] < hcolor-color_tolerance || hsv[0] > hcolor+color_tolerance ||
-               hsv[1] < scolor-color_tolerance || hsv[1] > scolor+color_tolerance ||
-               hsv[2] < vcolor-color_tolerance || hsv[2] > vcolor+color_tolerance)
+            hsv = rgbToHsv([frameData[pos+0],frameData[pos+1],frameData[pos+2]]);
+            if(hsv[0] < hcolor-color_tolerance[0]/2 || hsv[0] > hcolor+color_tolerance[0]/2 ||
+               hsv[1] < scolor-color_tolerance[1]/2 || hsv[1] > scolor+color_tolerance[1]/2 ||
+               hsv[2] < vcolor-color_tolerance[2]/2 || hsv[2] > vcolor+color_tolerance[2]/2)
                 return false;
         }
         return true;
@@ -203,15 +202,16 @@
     var min_speed, hcolor, vcolor, scolor;
     var lastImageData;
     var defaults = {
-        min_speed: 0x45,
-        tracker_size: 40,
-        color_to_track: '#EFD0CF', // Caucasian skin color by defect
-        color_tolerance: 0.2,
+        min_speed: 0x45,               // Minimun speed of the object to trigger the onMove function
+        tracker_size: 40,              // Size of the tracker
+        color_to_track: '#EFD0CF',     // Caucasian skin color by defect
+        color_tolerance: [0.2, 1, 1],  // h,s,v vector color tolerance (range 0-1)
         blended_opacity:0,
         tracker_opacity:1,
-        zIndex: 2e9,          // Use a high z-index by default
-        video_target_id: 'video2track', // Video css id to track
-        interactive: true // Allow click over a object to track
+        zIndex: 2e9,                   // Use a high z-index by default
+        video_target_id: 'video2track',// Video css id to track
+        interactive: true,             // Allow click over a object to track
+        inverted: false,               // Invert the video (usefull using webcam)
     };
     
     /** The constructor */
@@ -235,9 +235,13 @@
             min_speed = o.min_speed;
             color_tolerance = o.color_tolerance;
             tracker_size = o.tracker_size;
-            
             setColorToTrack(rgbToHsv(hex2rgb(o.color_to_track)));
             if (video2track) {
+                if(o.inverted){
+                    video2track.className += ' inverted';
+                    vtCanvas.className += ' inverted';
+                    vtCanvasBlended.className += ' inverted';
+                }
                 video2track.parentNode.insertBefore(vtCanvas, video2track||null);
                 video2track.parentNode.insertBefore(vtCanvasBlended, video2track||null);
                 vtDimensions = {left: video2track.offsetLeft + 'px',
@@ -254,10 +258,10 @@
                 vtCanvas.addEventListener('click', function(e) {
                     ctx.drawImage(video2track, 0, 0, video_width, video_height);
                     colorTracked = ctx.getImageData(video_width-e.clientX,e.clientY,1,1).data;
-                    hsv = rgbToHsv(colorTracked[0],colorTracked[1],colorTracked[2]);
+                    hsv = rgbToHsv(colorTracked);
                     console.log("color: r="+colorTracked[0]+",g="+colorTracked[1]+",b="+colorTracked[2]);
-                    //console.log("color: H="+hsv[0]+",S="+hsv[1]+",V="+hsv[2]);
-                    setColorToTrack(hsv[0],hsv[1],hsv[2]);
+                    console.log("color: H="+hsv[0]+",S="+hsv[1]+",V="+hsv[2]);
+                    setColorToTrack(hsv);
                 }, true);
             }
             video2track.loop=true;        
